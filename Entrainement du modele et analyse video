@@ -1,0 +1,81 @@
+## PART 1 - ENTRAINEMENT DU MODEL
+
+from google. colab import drive
+drive.mount ('/content/gdrive')
+
+ROOT_DIR = '/content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8'
+
+!ls /content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8
+
+import os
+
+file_path = os.path.join(ROOT_DIR, "data.yaml")
+print(os.path.exists(file_path))
+
+!pip install ultralytics
+
+import os
+from ultralytics import YOLO
+
+# load a model
+model = YOLO("yolov8n.yaml") # build a new model from scratch
+
+# Use the model
+results = model.train(data=os.path.join(ROOT_DIR, "data.yaml"), epochs=20) # train the model
+
+import locale
+locale.getpreferredencoding = lambda: "UTF-8"
+
+!scp -r /content/runs/detect/train '/content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8'
+
+!ls /content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8
+
+
+##PART 2 - ANALYSE DE VIDEO
+
+from google. colab import drive
+drive.mount ('/content/gdrive')
+
+import os
+import time
+import cv2
+import numpy as np
+
+#!pip install ultralytics
+from ultralytics import YOLO
+
+ROOT_DIR = '/content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8/Video'
+
+video_path = os.path.join(ROOT_DIR, 'Video_frelon4.mov')
+assert os.path.exists(video_path), "Video file does not exist"
+
+video_name_out = '{}_out.mov'.format(video_path.split('/')[-1].split('.')[0])  # This will take only the filename part, not full path
+ROOT_DIR_OUT = '/content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8/Video'
+
+# Creating the full output path
+video_path_out = os.path.join(ROOT_DIR_OUT, video_name_out)
+
+cap = cv2.VideoCapture(video_path)
+
+ret, frame = cap.read()
+
+H, W, _ = frame.shape
+
+# Use codec 'mp4v' for .mov file
+out = cv2.VideoWriter(video_path_out, cv2.VideoWriter_fourcc(*'mp4v'), int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
+
+model_path_last = '/content/gdrive/MyDrive/YOLO/g1g2.v1i.yolov8/train/weights/last.pt'
+
+# Load a model
+model = YOLO(model_path_last) # load a custom model
+
+threshold = 0.5
+
+# Check if the output video has been created
+if os.path.exists(video_path_out):
+
+    print(f"Output video {video_path_out} has been created.")
+else:
+    print(f"Output video {video_path_out} has not been created.")
+
+print("Path to the output video:", video_path_out)
